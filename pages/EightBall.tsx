@@ -80,19 +80,63 @@ export default function EightBall() {
   const [todoTodo, setTodoTodo] = useState<Todo | null>(null);
   const [dragging, setDragging] = useState(false);
   const [draggingHasStarted, setDraggingHasStarted] = useState(false);
+  const [ball,setBall]=useState(true);
+
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [edit,setEdit]=useState(false);
+
+
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!todo) return;
+    if (!edit){
+      setTodo("");
+      setTodos((prevTodos) => [...prevTodos, { text: todo, completed: false }]);  
+    }
+    else if(edit!=null){
+      setTodos((prevTodos) =>
+      prevTodos.map((prevTodo, index) =>
+        index === editIndex ? { ...prevTodo, text: todo } : prevTodo
+      )
+    );
+
+    // Reset editIndex and todo after updating
+    setEditIndex(null);
     setTodo("");
-    setTodos((prevTodos) => [...prevTodos, { text: todo, completed: false }]);
+    
+    setEditIndex(null);
+    setEditIndex(null);
   }
+  }
+
+
+  const onEdit = (index) => {
+    setTodo(todos[index].text);
+    setEdit(true);
+    setEditIndex(index);
+  }
+  
+
 
   const clearData = () => {
     setTodos([]);
     setTodo("");
     setTodoTodo(null);
+    setDragging(false);
+    setDraggingHasStarted(false);
+    setBall(true);
+    setEdit(false);
+    setEditIndex(null);
   };
+
+  const toggleVisibility = () => {
+    setBall(!ball);
+  };
+
+  const dispEdit = () =>{
+    toggleVisibility();
+  }
 
   const todoOpacity = draggingHasStarted && !dragging ? 1 : 0;
 
@@ -117,11 +161,11 @@ export default function EightBall() {
   useShake(showRandomTodo);
 
   return (
-    <div className="relative flex w-full h-screen items-center justify-center bg-[#ffedd5]">
+    <div className="relative flex w-full h-screen items-center justify-center bg-[#ffedd5] ">
       <div className="absolute top-6 right-6 text-right">
         {todos.map((todo, i) => (
           <div
-            className="text-black text-xs"
+            className="text-black text-m font-bold"
             style={{
               textDecoration: todo.completed ? "line-through" : undefined,
             }}
@@ -131,7 +175,20 @@ export default function EightBall() {
           </div>
         ))}
       </div>
-      <div className=" flex flex-col items-center justify-center gap-8">
+      <div className={`flex flex-col items-center justify-center gap-8 w-[580px] h-[400px] rounded-full ${ball ? 'hidden' : 'anish'}`}>
+          {todos.map((todo, i) => (
+              <div className="text-black font-bold text-xl" key={i}>
+                {todo.text}
+                <button className="mt-4 mr-4 ml-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={()=>
+                    onEdit(i)
+                  }
+                >Edit</button>
+      </div>
+            ))}
+      </div>
+
+      <div className={`flex flex-col items-center justify-center gap-8 ${ball ? 'anish' : 'hidden'}`}>
         <motion.div
           className="relative bg-black w-[400px] h-[400px] rounded-full"
           drag
@@ -169,25 +226,38 @@ export default function EightBall() {
             8
           </div>
         </motion.div>
-        <form
-          className="flex flex-col items-center justify-center"
+        
+      </div>
+      <form
+          className={`flex flex-col items-center justify-center ${ball ? 'transform translate-x-[30%]' : ''}`}
           onSubmit={handleSubmit}
         >
+          
           <input
             className="w-[300px] h-[50px] rounded-lg focus:border-2 focus:border-[#ffedd5]  text-center text-2xl text-black"
             type="text"
-            placeholder="Enter a todo"
+            placeholder={`Enter a todo`}
+    
             value={todo}
             onChange={(e) => setTodo(e.target.value)}
-          />
 
-          <button className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded" type="button"
+
+            
+            //onChange={(e) => (edit ? setNewText(e.target.value) : setTodo(e.target.value))}
+
+           />
+
+        <div className="flex items-center justify-center">
+          <button className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" type="button"
               onClick={clearData} >
             Clear
           </button>
-
+          <button className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transform translate-x-[30px]" type="button"
+              onClick={dispEdit} >
+            Edit
+          </button>
+        </div>
         </form>
-      </div>
     </div>
   );
 }
